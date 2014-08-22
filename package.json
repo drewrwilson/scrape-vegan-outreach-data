@@ -1,0 +1,11 @@
+{
+  "name": "scrape-vegan-outreach-data",
+  "description": "scrapes vegan outreach data",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "request" : "2.x",
+    "cheerio" : "0.x",
+    "csv": "0.x"
+  }
+}
