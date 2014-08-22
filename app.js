@@ -1,3 +1,25 @@
+
+
+//require from modules
+var request = require('request');
+var fs = require("fs");
+var cheerio = require("cheerio");
+
+url = 'http://www.adoptacollege.org/stats/daily.php';
+
+function ensureExists(path, mask, cb) {
+    if (typeof mask == 'function') { // allow the `mask` parameter to be optional
+        cb = mask;
+        mask = 0777;
+    }
+    fs.mkdir(path, mask, function(err) {
+        if (err) {
+            if (err.code == 'EEXIST') cb(null); // ignore the error if the folder already exists
+            else cb(err); // something else went wrong
+        } else cb(null); // successfully created folder
+    });
+}
+
 //define some global string functions
 String.prototype.killWhiteSpaceAndPeriod = function() {
     return this.replace(/.\s/g, '');
@@ -11,13 +33,6 @@ String.prototype.killComma = function() {
 String.prototype.escapeComma = function() {
     return this.replace(/,/g, '\,');
 };
-
-//require from modules
-var request = require('request');
-var fs = require("fs");
-var cheerio = require("cheerio");
-
-url = 'http://www.adoptacollege.org/stats/daily.php';
 
 function writeToCSV(array, filename, callback) {
   //join the 2D array with linebreaks
@@ -38,7 +53,7 @@ function cleanUpArray (array, filename) {
   })
 
   writeToCSV(array, filename, function () {
-    console.log('Successfully wrote to CSV');
+    console.log('Successfully wrote data to CSV: ' + filename);
   })
 }
 
@@ -90,10 +105,22 @@ function scrapeDailyTotals(dailyTotals, currentPage, lastPage, filename) {
 
   }//scrapeDailyTotals function
 
+function initialize (directory, callback) {
+  //make sure data directory exists, if not create it
+  ensureExists(__dirname + '/' + directory, 0744, function(err) {
+    if (err) {
+      console.log(err);
+    } // handle folder creation error
+    else {
+      callback();
+    }// we're all good
+  });
+
+}
 
 function main () {
-
   console.log('Initializing...');
+
   var config = {
                 "outputDirectory" : 'data/',
                 "dailyTotals" : {
@@ -105,13 +132,20 @@ function main () {
                 }
   console.log('Loaded config.');
 
-  //scrape daily totals and save to a CSV
-  scrapeDailyTotals([config.dailyTotals.headers], config.dailyTotals.firstPage, config.dailyTotals.lastPage, config.outputDirectory + config.dailyTotals.filename);
+  initialize (config.outputDirectory, function () {
+    console.log('Using this directory for data output: ' + config.outputDirectory);
+
+    //scrape daily totals and save to a CSV
+    scrapeDailyTotals([config.dailyTotals.headers], config.dailyTotals.firstPage, config.dailyTotals.lastPage, config.outputDirectory + config.dailyTotals.filename);
+
+  })
+
+
+
 
 
 
 
 }
-
 
 main();
