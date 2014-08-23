@@ -16,28 +16,28 @@ Data will be saved in ``data/`` in CSV format
 # Data
 
 ## Schools
-[ ] Semester totals
-[ ] Daily totals
-[ ] Leafleters by lifetime
-[ ] Leafleters by Semester
-[ ] Biggest events
-[ ] Individual schools
-[ ] Individual states
+ [ ] Semester totals
+ [ ] Daily totals
+ [ ] Leafleters by lifetime
+ [ ] Leafleters by Semester
+ [ ] Biggest events
+ [ ] Individual schools
+ [ ] Individual states
 
 ## Venues
-[ ] Year totals
-[ ] Daily totals
-[ ] Leafleters by lifetime
-[ ] Leafleters by year
-[ ] Biggest events
-[ ] Warped tour
-[ ] All events
+ [ ] Year totals
+ [ ] Daily totals
+ [ ] Leafleters by lifetime
+ [ ] Leafleters by year
+ [ ] Biggest events
+ [ ] Warped tour
+ [ ] All events
 
 ## Combined
-[ ] Grand totals
-[ ] Daily totals
-[ ] Leafleters by lifetime
-[ ] Summer totals
+ [ ] Grand totals
+ [ ] Daily totals
+ [ ] Leafleters by lifetime
+ [ ] Summer totals
 
 
 
