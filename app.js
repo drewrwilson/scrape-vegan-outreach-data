@@ -88,6 +88,18 @@ function cleanUpArray (array, filename, typeOfCleanUp) {
          }
        });
        break;
+    case 'yearTotals':
+      array.forEach(function(element,index,array){
+         if (index > 0 ) {
+           //remove comma from this big number, not needed yet but whatev
+           array[index][1] = array[index][1].killComma();
+           //remove comma from this big number
+           array[index][2] = array[index][2].killComma();
+           //entirely remove this column, it's just useless text
+           array[index].splice(3);
+         }
+      });
+      break;
      default:console.log('nothing');
   }
 
@@ -138,6 +150,49 @@ request({
 
 
 } //scrapeSemesterTotals
+
+function scrapeYearTotals (yearTotals, url, filename) {
+  console.log('Scraping year totals now...');
+  formParams = {
+   "var1" : "",
+   "var2" : "",
+   "var3" : "",
+   "var4" : "",
+   "var5" : "",
+   "var6" : ""
+  }
+
+request({
+  uri: url,
+  method: "POST",
+  timeout: 10000,
+  followRedirect: true,
+  form: formParams,
+  maxRedirects: 10
+}, function(error, response, body) {
+
+  //load body into cheerio
+  var $ = cheerio.load(body);
+
+
+  //loop through all rows <tr>
+  $('table tr').map(function(i, row) {
+      var item = [];
+      //loop through all columns <td>
+      $(row).children('td').each(function() {
+        item.push( $(this).text() );
+      });
+
+      if (item.length > 0) {
+        yearTotals.push(item);
+      }
+    })
+  cleanUpArray(yearTotals, filename, 'yearTotals');
+
+  });
+
+
+} //scrapeYearTotals
 
 
 function scrapeDailyTotals(dailyTotals, url, currentPage, lastPage, filename) {
@@ -273,6 +328,11 @@ function main () {
                     "filename" : 'leafleters-by-lifetime.csv',
                     "url" : 'http://www.adoptacollege.org/leafleter/leafleter_list.php'
                   },
+              "yearTotals" : {
+                    "headers" : ['Year','Leafleters','Booklets'],
+                    "filename" : 'year-totals.csv',
+                    "url" : 'http://www.adoptacollege.org/stats/years_table.php'
+                  },
               };
 
 
@@ -311,6 +371,13 @@ function main () {
       config.leafletersByLifetime.lastPage,
       config.outputDirectory + config.leafletersByLifetime.filename
         );
+
+    // Leafleters by Semester
+      scrapeYearTotals(
+        [config.yearTotals.headers],
+        config.yearTotals.url,
+        config.outputDirectory + config.yearTotals.filename
+          );
 
   })
 }
