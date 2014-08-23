@@ -1,9 +1,10 @@
-
-
-//require from modules
+//require modules
 var request = require('request');
-var fs = require("fs");
-var cheerio = require("cheerio");
+var fs = require('fs');
+var cheerio = require('cheerio');
+
+//load in config var
+var config = require('config.json'); // does this work?
 
 function ensureExists(path, mask, cb) {
     if (typeof mask == 'function') { // allow the `mask` parameter to be optional
@@ -172,32 +173,20 @@ function initialize (directory, callback) {
 
 function main () {
   console.log('Initializing...');
-  var config = {
-                "outputDirectory" : 'data/',
-                "dailyTotals" : {
-                      "headers" : ['Rank','Date','Amount'],
-                      "firstPage" : 1,
-                      "lastPage" : 2,
-                      "filename" : 'daily-totals.csv',
-                      "url" : 'http://www.adoptacollege.org/stats/daily.php'
-                    },
-                "semesterTotals" : {
-                      "headers" : ['Semester','Schools','Leafleters', 'Booklets'],
-                      "firstPage" : 1,
-                      "lastPage" : 1,
-                      "filename" : 'semester-totals.csv',
-                      "url" : 'http://www.adoptacollege.org/stats/semesters_table.php'
-                    },
-                }
-  console.log('Loaded config.');
 
   initialize (config.outputDirectory, function () {
     console.log('Using this directory for data output: ' + config.outputDirectory);
 
-    //scrape daily totals and save to a CSV
 
-    //schools data:
+
+    ////////////////////////////
+    // schools data:
+    //////////////////////////////////////
+
+    //scrape daily totals and save to a CSV:
     //scrapeDailyTotals([config.dailyTotals.headers], config.dailyTotals.url, config.dailyTotals.firstPage, config.dailyTotals.lastPage, config.outputDirectory + config.dailyTotals.filename);
+
+    //scrape semester totals and save to a CSV:
     scrapeSemesterTotals([config.semesterTotals.headers], config.semesterTotals.url, config.outputDirectory + config.semesterTotals.filename);
 
 

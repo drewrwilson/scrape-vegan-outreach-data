@@ -12,8 +12,7 @@ How to use locally:
 
 Data will be saved in ``data/`` in CSV format
 
-
-# Data
+# Data Inventory
 
 ## Schools
 * [X] Semester totals
