@@ -3,9 +3,6 @@ var request = require('request');
 var fs = require('fs');
 var cheerio = require('cheerio');
 
-//load in config var
-var config = require('config.json'); // does this work?
-
 function ensureExists(path, mask, cb) {
     if (typeof mask == 'function') { // allow the `mask` parameter to be optional
         cb = mask;
@@ -29,8 +26,14 @@ String.prototype.killWhiteSpace = function() {
 String.prototype.killComma = function() {
     return this.replace(/,/g, '');
 };
+String.prototype.killPeriod = function() {
+    return this.replace(/\./g, '');
+};
 String.prototype.escapeComma = function() {
     return this.replace(/,/g, '\,');
+};
+String.prototype.addQuotes = function() {
+    return '"' + this + '"';
 };
 
 function writeToCSV(array, filename, callback) {
@@ -43,22 +46,49 @@ function writeToCSV(array, filename, callback) {
 }
 
 function cleanUpArray (array, filename, typeOfCleanUp) {
-  if (typeOfCleanUp == 'dailyTotals') {
-    array.forEach(function(element,index,array){
-       if (index > 0 ) {
-         array[index][0] = array[index][0].killWhiteSpaceAndPeriod();
-         array[index][1] = '"' + array[index][1] + '"';
-         array[index][2] = array[index][2].killComma();
-       }
-    })
-  } else if (typeOfCleanUp == 'semesterTotals') {
-      //TODO: remove the 5th column: array[4]
+
+  switch (typeOfCleanUp) {
+    case 'dailyTotals':
       array.forEach(function(element,index,array){
          if (index > 0 ) {
-           array[index][3] = array[index][3].killComma();
-           //remove 5th column here
+           //remove white space and period
+           array[index][0] = array[index][0].killWhiteSpaceAndPeriod();
+           //put quotes around date because date have commas in them
+           array[index][1] = '"' + array[index][1] + '"';
+           //remove comma from this big number
+           array[index][2] = array[index][2].killComma();
          }
-      })
+       });
+       break;
+    case 'semesterTotals':
+      array.forEach(function(element,index,array){
+         if (index > 0 ) {
+           //remove comma from this big number
+           array[index][3] = array[index][3].killComma();
+           //entirely remove this column, it's just useless text
+           array[index].splice(4);
+         }
+      });
+      break;
+    case 'leafletersByLifetime':
+      array.forEach(function(element,index,array){
+         if (index > 0 ) {
+           //get rid of period
+           array[index][0] = array[index][0].killPeriod();
+           //put quotes around date because date have commas in them
+           array[index][1] = array[index][1].addQuotes();
+           //remove comma from this big number
+           array[index][2] = array[index][2].killComma();
+           //put quotes around city because City, State have commas in them
+           array[index][3] = array[index][3].addQuotes();
+           //remove comma from this big number (not needed yet, but maybe in the future)
+           array[index][4] = array[index][4].killComma();
+           //remove comma from this big number
+           array[index][5] = array[index][5].killComma();
+         }
+       });
+       break;
+     default:console.log('nothing');
   }
 
   writeToCSV(array, filename, function () {
@@ -151,12 +181,62 @@ function scrapeDailyTotals(dailyTotals, url, currentPage, lastPage, filename) {
       if (currentPage >= lastPage)  {
         cleanUpArray(dailyTotals, filename, 'dailyTotals');
       } else {
-        scrapeDailyTotals(dailyTotals, currentPage+1, lastPage, filename);
+        scrapeDailyTotals(dailyTotals, url, currentPage+1, lastPage, filename);
       }
 
     });
 
   }//scrapeDailyTotals function
+
+
+function scrapeLeafletersByLifetime(leafleters, url, currentPage, lastPage, filename) {
+
+  console.log('Scraping leafleters by lifetime. currentPage: ' + currentPage + ' of ' + lastPage+ '...');
+  formParams = {
+   "var1" : currentPage,
+   "var2" : "campus",
+   "var3" : "life",
+   "var4" : "total",
+   "var5" : "",
+   "var6" : ""
+  }
+
+  request({
+    uri: url,
+    method: "POST",
+    timeout: 10000,
+    followRedirect: true,
+    form: formParams,
+    maxRedirects: 10
+  }, function(error, response, body) {
+
+    //load body into cheerio
+    var $ = cheerio.load(body);
+
+
+    //loop through all rows <tr>
+    $('table tr').map(function(i, row) {
+        var item = [];
+        //loop through all columns <td>
+        $(row).children('td').each(function() {
+          item.push( $(this).text() );
+        });
+
+        if (item.length > 0) {
+          leafleters.push(item);
+        }
+
+      })
+      if (currentPage >= lastPage)  {
+        cleanUpArray(leafleters, filename, 'leafletersByLifetime');
+      } else {
+        scrapeLeafletersByLifetime(leafleters, url, currentPage+1, lastPage, filename);
+      }
+
+    });
+
+  }//scrapeLeafletersByLifetime function
+
 
 function initialize (directory, callback) {
   //make sure data directory exists, if not create it
@@ -172,6 +252,30 @@ function initialize (directory, callback) {
 }
 
 function main () {
+  var config = {
+              "outputDirectory" : 'data/',
+              "dailyTotals" : {
+                    "headers" : ['Rank','Date','Amount'],
+                    "firstPage" : 1,
+                    "lastPage" : 50,
+                    "filename" : 'daily-totals.csv',
+                    "url" : 'http://www.adoptacollege.org/stats/daily.php'
+                  },
+              "semesterTotals" : {
+                    "headers" : ['Semester','Schools','Leafleters', 'Booklets'],
+                    "filename" : 'semester-totals.csv',
+                    "url" : 'http://www.adoptacollege.org/stats/semesters_table.php'
+                  },
+              "leafletersByLifetime" : {
+                    "headers" : ['Rank', 'Leafleter', 'Organization', 'Location', 'Schools', 'Total'],
+                    "firstPage" : 1,
+                    "lastPage" : 30,
+                    "filename" : 'leafleters-by-lifetime.csv',
+                    "url" : 'http://www.adoptacollege.org/leafleter/leafleter_list.php'
+                  },
+              };
+
+
   console.log('Initializing...');
 
   initialize (config.outputDirectory, function () {
@@ -183,17 +287,30 @@ function main () {
     // schools data:
     //////////////////////////////////////
 
-    //scrape daily totals and save to a CSV:
-    //scrapeDailyTotals([config.dailyTotals.headers], config.dailyTotals.url, config.dailyTotals.firstPage, config.dailyTotals.lastPage, config.outputDirectory + config.dailyTotals.filename);
+    // Semester totals
+    scrapeSemesterTotals(
+      [config.semesterTotals.headers],
+      config.semesterTotals.url,
+      config.outputDirectory + config.semesterTotals.filename
+        );
 
-    //scrape semester totals and save to a CSV:
-    scrapeSemesterTotals([config.semesterTotals.headers], config.semesterTotals.url, config.outputDirectory + config.semesterTotals.filename);
+    //Daily totals
+    scrapeDailyTotals(
+      [config.dailyTotals.headers],
+      config.dailyTotals.url,
+      config.dailyTotals.firstPage,
+      config.dailyTotals.lastPage,
+      config.outputDirectory + config.dailyTotals.filename
+        );
 
-
-
-    //venues data:
-
-    //grand totals data:
+    //Leafleters by lifetime
+    scrapeLeafletersByLifetime(
+      [config.leafletersByLifetime.headers],
+      config.leafletersByLifetime.url,
+      config.leafletersByLifetime.firstPage,
+      config.leafletersByLifetime.lastPage,
+      config.outputDirectory + config.leafletersByLifetime.filename
+        );
 
   })
 }
