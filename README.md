@@ -16,8 +16,8 @@ Data will be saved in ``data/`` in CSV format
 # Data
 
 ## Schools
-* [ ] Semester totals
-* [ ] Daily totals
+* [X] Semester totals
+* [X] Daily totals
 * [ ] Leafleters by lifetime
 * [ ] Leafleters by Semester
 * [ ] Biggest events
