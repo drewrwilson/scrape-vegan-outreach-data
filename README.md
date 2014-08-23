@@ -13,9 +13,9 @@ How to use locally:
 Data will be saved in ``data/`` in CSV format
 
 
-= Data =
+# Data
 
-== Schools ==
+## Schools
 [ ] Semester totals
 [ ] Daily totals
 [ ] Leafleters by lifetime
@@ -24,7 +24,7 @@ Data will be saved in ``data/`` in CSV format
 [ ] Individual schools
 [ ] Individual states
 
-== Venues ==
+## Venues
 [ ] Year totals
 [ ] Daily totals
 [ ] Leafleters by lifetime
@@ -33,7 +33,7 @@ Data will be saved in ``data/`` in CSV format
 [ ] Warped tour
 [ ] All events
 
-== Combined ==
+## Combined
 [ ] Grand totals
 [ ] Daily totals
 [ ] Leafleters by lifetime
@@ -41,8 +41,8 @@ Data will be saved in ``data/`` in CSV format
 
 
 
-= Ideas =
-== Ideas for possible improvements ==
+# Ideas
+## Ideas for possible improvements
 * Make an API for this data
   * But build an API directly from the actual  DB as opposed to using scraping to build an API
 * Make some tests to make sure the data coming out is accurate and formatted properly.
@@ -51,7 +51,7 @@ Data will be saved in ``data/`` in CSV format
 * Automatically upload CSVs to a public place after scraping
 
 
-== Hair-brained ideas ==
+## Hair-brained ideas
 * Scrape daily and tweet when there's a new update
 * Tweet a random featured leafleter and their stats
 * Associate twitter handles with names in the data and tweet @mentioning someone when there's a change to their data
