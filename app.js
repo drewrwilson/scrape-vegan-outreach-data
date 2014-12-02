@@ -45,6 +45,9 @@ function writeToCSV(array, filename, callback) {
   });
 }
 
+// This function cleans up the data coming from scraping before writing it
+// out to a CSV. There are multiple case statements so that the function
+// can clean up different kinds of data before outputing it to a CSV.
 function cleanUpArray (array, filename, typeOfCleanUp) {
 
   switch (typeOfCleanUp) {
@@ -97,6 +100,20 @@ function cleanUpArray (array, filename, typeOfCleanUp) {
            array[index][2] = array[index][2].killComma();
            //entirely remove this column, it's just useless text
            array[index].splice(3);
+         }
+      });
+      break;
+    case 'grandTotals':
+      array.forEach(function(element,index,array){
+         if (index > 0 ) {
+           //add quotes for this date range
+           array[index][1] = array[index][1].addQuotes();
+           //nix the commas
+           array[index][2] = array[index][2].killComma();
+           //nix the commas
+           array[index][3] = array[index][3].killComma();
+           //nix the commas
+           array[index][4] = array[index][4].killComma();
          }
       });
       break;
@@ -193,6 +210,91 @@ request({
 
 
 } //scrapeYearTotals
+function scrapeSemesterTotals (semesterTotals, url, filename) {
+  console.log('Scraping semester totals now...');
+  formParams = {
+   "var1" : "",
+   "var2" : "",
+   "var3" : "",
+   "var4" : "",
+   "var5" : "",
+   "var6" : ""
+  }
+
+request({
+  uri: url,
+  method: "POST",
+  timeout: 10000,
+  followRedirect: true,
+  form: formParams,
+  maxRedirects: 10
+}, function(error, response, body) {
+
+  //load body into cheerio
+  var $ = cheerio.load(body);
+
+
+  //loop through all rows <tr>
+  $('table tr').map(function(i, row) {
+      var item = [];
+      //loop through all columns <td>
+      $(row).children('td').each(function() {
+        item.push( $(this).text() );
+      });
+
+      if (item.length > 0) {
+        semesterTotals.push(item);
+      }
+    })
+  cleanUpArray(semesterTotals, filename, 'semesterTotals');
+
+  });
+
+
+} //scrapeSemesterTotals
+
+function scrapeGrandTotals (yearTotals, url, filename) {
+  console.log('Scraping grand totals now...');
+  formParams = {
+   "var1" : "",
+   "var2" : "",
+   "var3" : "",
+   "var4" : "",
+   "var5" : "",
+   "var6" : ""
+  }
+
+request({
+  uri: url,
+  method: "POST",
+  timeout: 10000,
+  followRedirect: true,
+  form: formParams,
+  maxRedirects: 10
+}, function(error, response, body) {
+
+  //load body into cheerio
+  var $ = cheerio.load(body);
+
+
+  //loop through all rows <tr>
+  $('table tr').map(function(i, row) {
+      var item = [];
+      //loop through all columns <td>
+      $(row).children('td').each(function() {
+        item.push( $(this).text() );
+      });
+
+      if (item.length > 0) {
+        yearTotals.push(item);
+      }
+    })
+  cleanUpArray(yearTotals, filename, 'grandTotals');
+
+  });
+
+
+} //scrapeGrandTotals
 
 
 function scrapeDailyTotals(dailyTotals, url, currentPage, lastPage, filename) {
@@ -244,7 +346,7 @@ function scrapeDailyTotals(dailyTotals, url, currentPage, lastPage, filename) {
   }//scrapeDailyTotals function
 
 
-function scrapeLeafletersByLifetime(leafleters, url, currentPage, lastPage, filename) {
+function scrapeLeafletersByLifetimeSchools(leafleters, url, currentPage, lastPage, filename) {
 
   console.log('Scraping leafleters by lifetime. currentPage: ' + currentPage + ' of ' + lastPage+ '...');
   formParams = {
@@ -285,12 +387,12 @@ function scrapeLeafletersByLifetime(leafleters, url, currentPage, lastPage, file
       if (currentPage >= lastPage)  {
         cleanUpArray(leafleters, filename, 'leafletersByLifetime');
       } else {
-        scrapeLeafletersByLifetime(leafleters, url, currentPage+1, lastPage, filename);
+        scrapeLeafletersByLifetimeSchools(leafleters, url, currentPage+1, lastPage, filename);
       }
 
     });
 
-  }//scrapeLeafletersByLifetime function
+  }//scrapeLeafletersByLifetimeSchools function
 
 
 function initialize (directory, callback) {
@@ -321,17 +423,22 @@ function main () {
                     "filename" : 'semester-totals.csv',
                     "url" : 'http://www.adoptacollege.org/stats/semesters_table.php'
                   },
-              "leafletersByLifetime" : {
+              "leafletersByLifetimeSchools" : {
                     "headers" : ['Rank', 'Leafleter', 'Organization', 'Location', 'Schools', 'Total'],
                     "firstPage" : 1,
                     "lastPage" : 30,
-                    "filename" : 'leafleters-by-lifetime.csv',
+                    "filename" : 'leafleters-by-lifetime-schools-only.csv',
                     "url" : 'http://www.adoptacollege.org/leafleter/leafleter_list.php'
+                  },
+              "grandTotals" : {
+                    "headers" : ['Source', 'Date Range', 'Leafleters', 'Schools', 'Booklets'],
+                    "filename" : 'grand-totals.csv',
+                    "url" : 'http://www.adoptacollege.org/stats/grand.php'
                   },
               "yearTotals" : {
                     "headers" : ['Year','Leafleters','Booklets'],
                     "filename" : 'year-totals.csv',
-                    "url" : 'http://www.adoptacollege.org/stats/years_table.php'
+                    "url" : 'http://adoptacollege.org/stats/years_table.php'
                   },
               };
 
@@ -362,9 +469,16 @@ function main () {
       config.dailyTotals.lastPage,
       config.outputDirectory + config.dailyTotals.filename
         );
-
-    //Leafleters by lifetime
-    scrapeLeafletersByLifetime(
+    //Leafleters by lifetime schools
+    scrapeLeafletersByLifetimeSchools(
+      [config.leafletersByLifetime.headers],
+      config.leafletersByLifetime.url,
+      config.leafletersByLifetime.firstPage,
+      config.leafletersByLifetime.lastPage,
+      config.outputDirectory + config.leafletersByLifetime.filename
+        );
+    //Leafleters by lifetime venues
+    scrapeLeafletersByLifetimeSchools(
       [config.leafletersByLifetime.headers],
       config.leafletersByLifetime.url,
       config.leafletersByLifetime.firstPage,
@@ -372,11 +486,11 @@ function main () {
       config.outputDirectory + config.leafletersByLifetime.filename
         );
 
-    // Leafleters by Semester
-      scrapeYearTotals(
-        [config.yearTotals.headers],
-        config.yearTotals.url,
-        config.outputDirectory + config.yearTotals.filename
+    // Grand totals
+      scrapeGrandTotals(
+        [config.grandTotals.headers],
+        config.grandTotals.url,
+        config.outputDirectory + config.grandTotals.filename
           );
 
   })

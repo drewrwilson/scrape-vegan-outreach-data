@@ -43,7 +43,7 @@ Data will be saved in ``data/`` in CSV format
 # Ideas
 ## Ideas for possible improvements
 * Make an API for this data
-  * But build an API directly from the actual  DB as opposed to using scraping to build an API
+  * But build an API directly from the actual  DB as opposed to scraping to build an API
 * Make some tests to make sure the data coming out is accurate and formatted properly.
  * Maybe a CSV linter
 * Schedule regular scraping
@@ -54,3 +54,6 @@ Data will be saved in ``data/`` in CSV format
 * Scrape daily and tweet when there's a new update
 * Tweet a random featured leafleter and their stats
 * Associate twitter handles with names in the data and tweet @mentioning someone when there's a change to their data
+* Make this script an express app with some routes for the CSV
+  * / route would be some info about when it was last scraped, and info about the various end points
+  * a route for each scraping
