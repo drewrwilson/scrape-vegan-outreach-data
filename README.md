@@ -42,7 +42,8 @@ Data will be saved in ``data/`` in CSV format
 
 # Ideas
 ## Ideas for possible improvements
-* Visualize this data in a meaningful way!
+* Visualize this data in a meaningful way
+  * would be neat to do an event around visualizing this data
 * Make an API for this data
   * But it would be way better to build an API directly from the actual DB as opposed to scraping to build an API
 * Make some tests to make sure the data coming out is accurate and formatted properly.
@@ -52,7 +53,7 @@ Data will be saved in ``data/`` in CSV format
 
 
 
-## Hair-brained ideas
+## Totally hair-brained ideas
 * Scrape daily and tweet when there's a new update
 * Tweet a random featured leafleter and their stats
 * Associate twitter handles with names in the data and tweet @mentioning someone when there's a change to their data
