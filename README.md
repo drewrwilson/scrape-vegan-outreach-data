@@ -42,12 +42,14 @@ Data will be saved in ``data/`` in CSV format
 
 # Ideas
 ## Ideas for possible improvements
+* Visualize this data in a meaningful way!
 * Make an API for this data
-  * But build an API directly from the actual  DB as opposed to scraping to build an API
+  * But it would be way better to build an API directly from the actual DB as opposed to scraping to build an API
 * Make some tests to make sure the data coming out is accurate and formatted properly.
  * Maybe a CSV linter
 * Schedule regular scraping
 * Automatically upload CSVs to a public place after scraping
+
 
 
 ## Hair-brained ideas
